@@ -33,6 +33,7 @@ class NukiEntity(PassiveBluetoothCoordinatorEntity[NukiDataUpdateCoordinator]):
         self._last_result = None
         self._address = coordinator.ble_device.address
         self._attr_unique_id = coordinator.base_unique_id
+        self.coordinator = coordinator
         self._attr_device_info = DeviceInfo(
             connections={(dr.CONNECTION_BLUETOOTH, self._address)},
             manufacturer=MANUFACTURER,
@@ -45,6 +46,7 @@ class NukiEntity(PassiveBluetoothCoordinatorEntity[NukiDataUpdateCoordinator]):
                 str(x) for x in coordinator.device.config.get("firmware_version",[])
             ),
         )
+        self._attr_available = coordinator.is_available
 
     @property
     def extra_state_attributes(self) -> Mapping[Any, Any]:
@@ -54,6 +56,7 @@ class NukiEntity(PassiveBluetoothCoordinatorEntity[NukiDataUpdateCoordinator]):
     @callback
     def _async_update_attrs(self) -> None:
         """Update the entity attributes."""
+        self._attr_available = self.coordinator.is_available
 
     @callback
     def _handle_coordinator_update(self) -> None:

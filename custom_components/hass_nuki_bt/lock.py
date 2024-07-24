@@ -43,6 +43,7 @@ class NukiLock(NukiEntity, LockEntity):
         self._attr_is_locking = status is NukiLockConst.LockState.LOCKING
         self._attr_is_unlocking = status is NukiLockConst.LockState.UNLOCKING
         self._attr_is_jammed = status is NukiLockConst.LockState.MOTOR_BLOCKED
+        super()._async_update_attrs()
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the lock."""

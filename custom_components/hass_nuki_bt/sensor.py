@@ -105,6 +105,14 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         entity_category=EntityCategory.DIAGNOSTIC,
         info_function=lambda slf: slf.coordinator.last_nuki_log_entry.get("name"),
     ),
+    "last_probe": NukiSensorEntityDescription(
+        key="last_probe",
+        name="Last probe time",
+        icon="mdi:timer-sync",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        info_function=lambda slf: slf.coordinator.last_updated,
+    ),
 }
 
 
