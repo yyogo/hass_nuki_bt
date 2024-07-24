@@ -5,6 +5,7 @@ from homeassistant.components.button import ButtonEntity, ButtonEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.const import EntityCategory
 from .pyNukiBt import NukiDevice, NukiLockConst
 
 from .entity import NukiEntity
@@ -25,16 +26,25 @@ class NukiButtonEntityDescription(ButtonEntityDescription):
 
 BUTTON_TYPES: [NukiButtonEntityDescription] = (
     NukiButtonEntityDescription(
-        key="battery_critical", name="Unlatch", action=NukiLockConst.LockAction.UNLATCH
+        key="battery_critical", name="Unlatch", 
+        action=lambda cdtr: cdtr.async_lock_action(NukiLockConst.LockAction.UNLATCH)
     ),
     NukiButtonEntityDescription(
-        name="Lock 'n' Go", key="lockngo", action=NukiLockConst.LockAction.LOCK_N_GO
+        name="Lock 'n' Go", key="lockngo",
+        action=lambda cdtr: cdtr.async_lock_action(NukiLockConst.LockAction.LOCK_N_GO)
     ),
     NukiButtonEntityDescription(
         name="Lock 'n' Go with unlatch",
         key="lockngounlatch",
-        action=NukiLockConst.LockAction.LOCK_N_GO_UNLATCH,
+        action=lambda cdtr: cdtr.async_lock_action(NukiLockConst.LockAction.LOCK_N_GO_UNLATCH),
     ),
+    NukiButtonEntityDescription(
+        name="Probe Nuki state",
+        key="probe_state",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        icon="mdi:sync",
+        action=lambda cdtr: cdtr._async_update()
+    )
 )
 
 
@@ -56,10 +66,11 @@ class NukiButton(ButtonEntity, NukiEntity):
     ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
+        self.entity_description = btn
         self._attr_name = btn.name
         self._attr_unique_id = f"{coordinator.base_unique_id}-{btn.key}"
         self._action = btn.action
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self.async_lock_action(self._action)
+        await self._action(self.coordinator)
