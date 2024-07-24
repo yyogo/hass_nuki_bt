@@ -109,28 +109,29 @@ class NukiDataUpdateCoordinator(ActiveBluetoothDataUpdateCoordinator[None]):
         """Poll the device."""
         if service_info:
             self.device.set_ble_device(service_info.device)
-        await self.device.update_state()
-        if self._security_pin:
-            # get the latest log entry
-            # todo: check if Nuki logging is enabled
-            logs = await self.device.request_log_entries(
-                security_pin=self._security_pin, count=1
-            )
-            if logs:
-                if logs[0].type == NukiConst.LogEntryType.LOCK_ACTION:
-                    # todo: handle other log types
-                    self.last_nuki_log_entry = logs[0]
-                elif logs[0].index > self.last_nuki_log_entry["index"]:
-                    # if there are new log entries, get max 10 entries
-                    logs = await self.device.request_log_entries(
-                        security_pin=self._security_pin,
-                        count=min(10, logs[0].index - self.last_nuki_log_entry["index"]),
-                        start_index=logs[0].index,
-                    )
-                    for log in logs:
-                        if log.type == NukiConst.LogEntryType.LOCK_ACTION:
-                            self.last_nuki_log_entry = log
-                            break
+        async with self.device.connection():
+            await self.device.update_state()
+            if self._security_pin:
+                # get the latest log entry
+                # todo: check if Nuki logging is enabled
+                logs = await self.device.request_log_entries(
+                    security_pin=self._security_pin, count=1
+                )
+                if logs:
+                    if logs[0].type == NukiConst.LogEntryType.LOCK_ACTION:
+                        # todo: handle other log types
+                        self.last_nuki_log_entry = logs[0]
+                    elif logs[0].index > self.last_nuki_log_entry["index"]:
+                        # if there are new log entries, get max 10 entries
+                        logs = await self.device.request_log_entries(
+                            security_pin=self._security_pin,
+                            count=min(10, logs[0].index - self.last_nuki_log_entry["index"]),
+                            start_index=logs[0].index,
+                        )
+                        for log in logs:
+                            if log.type == NukiConst.LogEntryType.LOCK_ACTION:
+                                self.last_nuki_log_entry = log
+                                break
 
         self.async_update_nuki_listeners()
 
