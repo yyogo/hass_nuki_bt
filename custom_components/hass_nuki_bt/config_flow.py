@@ -16,7 +16,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 
-from pyNukiBT import NukiConst, NukiDevice, NukiErrorException
+from .pyNukiBt import NukiConst, NukiDevice, NukiErrorException
 
 from .const import (
     CONF_APP_ID,

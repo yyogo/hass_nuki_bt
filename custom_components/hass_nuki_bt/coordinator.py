@@ -15,7 +15,7 @@ from homeassistant.components.bluetooth.active_update_coordinator import (
     ActiveBluetoothDataUpdateCoordinator,
 )
 from homeassistant.core import HomeAssistant, callback, CALLBACK_TYPE
-from pyNukiBT import NukiDevice, NukiConst
+from .pyNukiBt import NukiDevice, NukiConst
 
 if TYPE_CHECKING:
     from collections.abc import Callable

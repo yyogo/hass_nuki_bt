@@ -11,7 +11,7 @@ from homeassistant.components.bluetooth.passive_update_coordinator import (
 from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
-from pyNukiBT import NukiDevice, NukiErrorException
+from .pyNukiBt import NukiDevice, NukiErrorException
 
 from .const import MANUFACTURER
 from .coordinator import NukiDataUpdateCoordinator

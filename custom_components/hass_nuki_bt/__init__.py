@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.components import bluetooth
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from pyNukiBT import NukiDevice, NukiConst
+from .pyNukiBt import NukiDevice, NukiConst
 
 from .const import (
     CONF_APP_ID,
