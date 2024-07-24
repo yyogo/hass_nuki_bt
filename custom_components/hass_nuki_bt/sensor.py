@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from collections.abc import Callable
+import datetime
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -77,6 +78,13 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         icon="mdi:door",
         device_class=SensorDeviceClass.ENUM,
     ),
+    "last_lock_action_time": NukiSensorEntityDescription(
+        key="last_lock_action_time",
+        name="Last lock action time",
+        icon="mdi:clock-time-eight",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        info_function=lambda slf: nuki_datetime_to_timestamp(slf.coordinator.last_nuki_log_entry.get("timestamp")),
+    ),
     "last_lock_action_trigger": NukiSensorEntityDescription(
         key="last_lock_action_trigger",
         name="Last Action Trigger",
@@ -101,7 +109,6 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         key="last_action_user",
         name="Last action user name",
         icon="mdi:lock",
-        device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
         info_function=lambda slf: slf.coordinator.last_nuki_log_entry.get("name"),
     ),
@@ -115,6 +122,17 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
     ),
 }
 
+def nuki_datetime_to_timestamp(nuki_date_time) -> datetime.datetime | None:
+    if nuki_date_time is not None:
+        return datetime.datetime(
+            nuki_date_time.year,
+            nuki_date_time.month, 
+            nuki_date_time.day, 
+            nuki_date_time.hour, 
+            nuki_date_time.minute,
+            nuki_date_time.second,
+            tzinfo=datetime.UTC)
+    
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
