@@ -1,15 +1,15 @@
 """Sensor platform for hass_nuki_bt."""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from collections.abc import Callable
 import datetime
 
 from homeassistant.components.sensor import (
-    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
-    SensorStateClass,
 )
+from homeassistant.components.sensor.const import SensorStateClass, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
@@ -26,11 +26,11 @@ from .entity import NukiEntity
 PARALLEL_UPDATES = 0
 
 
-@dataclass
+@dataclass(frozen=True)
 class NukiSensorEntityDescription(SensorEntityDescription):
     """A class that describes nuki sensor entities."""
 
-    info_function: Callable | None = lambda slf: slf.device.keyturner_state[slf.sensor]
+    info_function: Callable = lambda slf: slf.device.keyturner_state[slf.sensor]
 
 
 SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
@@ -38,7 +38,6 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         key="name",
         name="Nuki Device Name",
         icon="mdi:lock",
-        device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
         info_function=lambda slf: slf.device.config.get(slf.sensor),
     ),
@@ -65,31 +64,79 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         name="Lock state",
         icon="mdi:lock",
         device_class=SensorDeviceClass.ENUM,
+        options=[
+            "BOOT_RUN",
+            "CALIBRATION",
+            "LOCKED",
+            "LOCKING",
+            "MOTOR_BLOCKED",
+            "OPEN",
+            "OPENING",
+            "RTO_ACTIVE",
+            "UNCALIBRATED",
+            "UNDEFINED",
+            "UNLATCHED",
+            "UNLATCHING",
+            "UNLOCKED_LOCK_N_GO",
+            "UNLOCKED",
+            "UNLOCKING",
+        ],
     ),
     "door_sensor_state": NukiSensorEntityDescription(
         key="door_state",
         name="Door state",
         icon="mdi:door",
         device_class=SensorDeviceClass.ENUM,
+        options=[
+            "UNAVAILABLE",
+            "DEACTIVATED",
+            "DOOR_CLOSED",
+            "DOOR_OPENED",
+            "DOOR_STATE_UNKOWN",
+            "CALIBRATING",
+            "UNCALIBRATED",
+            "REMOVED",
+            "UNKOWN",
+        ],
     ),
     "last_lock_action": NukiSensorEntityDescription(
         key="last_lock_action",
         name="Last lock action",
         icon="mdi:door",
         device_class=SensorDeviceClass.ENUM,
+        options=[
+            "NONE",
+            "ACTIVATE_RTO",
+            "DEACTIVATE_RTO",
+            "ELECTRIC_STRIKE_ACTUATION",
+            "ACTIVATE_CM",
+            "DEACTIVATE_CM",
+            "FOB_ACTION_1",
+            "FOB_ACTION_2",
+            "FOB_ACTION_3",
+        ],
     ),
     "last_lock_action_time": NukiSensorEntityDescription(
         key="last_lock_action_time",
         name="Last lock action time",
         icon="mdi:clock-time-eight",
         device_class=SensorDeviceClass.TIMESTAMP,
-        info_function=lambda slf: nuki_datetime_to_timestamp(slf.coordinator.last_nuki_log_entry.get("timestamp")),
+        info_function=lambda slf: nuki_datetime_to_timestamp(
+            slf.coordinator.last_nuki_log_entry.get("timestamp")
+        ),
     ),
     "last_lock_action_trigger": NukiSensorEntityDescription(
         key="last_lock_action_trigger",
         name="Last Action Trigger",
         icon="mdi:door",
         device_class=SensorDeviceClass.ENUM,
+        options=[
+            "SYSTEM",
+            "MANUAL",
+            "BUTTON",
+            "AUTOMATIC",
+            "AUTO_LOCK",
+        ],
     ),
     "last_lock_action_completion_status": NukiSensorEntityDescription(
         key="last_lock_action_completion_status",
@@ -97,6 +144,19 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         icon="mdi:door",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
+        options=[
+            "SUCCESS",
+            "MOTOR_BLOCKED",
+            "CANCELED",
+            "TOO_RECENT",
+            "BUSY",
+            "LOW_MOTOR_VOLTAGE",
+            "CLUTCH_FAILURE",
+            "MOTOR_POWER_FAILURE",
+            "INCOMPLETE",
+            "OTHER_ERROR",
+            "UNKNOWN",
+        ],
     ),
     "nuki_state": NukiSensorEntityDescription(
         key="nuki_state",
@@ -104,6 +164,13 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
         icon="mdi:lock",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
+        options=[
+            "UNINITIALIZED",
+            "PAIRING_MODE",
+            "DOOR_MODE",
+            "CONTINUOUS_MODE",
+            "MAINTENANCE_MODE",
+        ],
     ),
     "last_action_user": NukiSensorEntityDescription(
         key="last_action_user",
@@ -122,17 +189,19 @@ SENSOR_TYPES: dict[str, NukiSensorEntityDescription] = {
     ),
 }
 
+
 def nuki_datetime_to_timestamp(nuki_date_time) -> datetime.datetime | None:
     if nuki_date_time is not None:
         return datetime.datetime(
             nuki_date_time.year,
-            nuki_date_time.month, 
-            nuki_date_time.day, 
-            nuki_date_time.hour, 
+            nuki_date_time.month,
+            nuki_date_time.day,
+            nuki_date_time.hour,
             nuki_date_time.minute,
             nuki_date_time.second,
-            tzinfo=datetime.UTC)
-    
+            tzinfo=datetime.UTC,
+        )
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
